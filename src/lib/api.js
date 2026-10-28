@@ -30,6 +30,71 @@ async function request(endpoint, options = {}) {
 }
 
 export const api = {
+  /* ==========================================================================
+     AUTH ENDPOINTS (/api/admin) - Cookie-based
+     ========================================================================== */
+  async login(credentials) {
+    return request("/admin/login", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  async logout() {
+    return request("/admin/logout", {
+      method: "POST",
+    });
+  },
+
+  async getMe() {
+    return request("/admin/me");
+  },
+
+  /* ==========================================================================
+     ADMIN USERS MANAGEMENT (/api/admin/admins) - Superadmin only
+     ========================================================================== */
+  async getAdmins(params = {}) {
+    const query = new URLSearchParams();
+    if (params.role && params.role !== "all") query.set("role", params.role);
+    if (params.search) query.set("search", params.search);
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return request(`/admin/admins${qs}`);
+  },
+
+  async getAdmin(id) {
+    return request(`/admin/admins/${id}`);
+  },
+
+  async createAdmin(payload) {
+    return request("/admin/admins", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateAdmin(id, payload) {
+    return request(`/admin/admins/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async setAdminPassword(id, password) {
+    return request(`/admin/admins/${id}/set-password`, {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    });
+  },
+
+  async deleteAdmin(id) {
+    return request(`/admin/admins/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  /* ==========================================================================
+     BOOKINGS MANAGEMENT (/api/admin/bookings)
+     ========================================================================== */
   async getBookings(params = {}) {
     const query = new URLSearchParams();
     if (params.status && params.status !== "all")
@@ -99,9 +164,50 @@ export const api = {
     return request(`/admin/payments/booking/${refOrId}`);
   },
 
-  async getRoutes() {
-    const res = await fetch(`${API_BASE}/routes`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('Failed to fetch routes');
-    return res.json();
-  }
+  /* ==========================================================================
+     ROUTES & FARES MANAGEMENT (/api/admin/routes)
+     ========================================================================== */
+  async getRoutes(params = {}) {
+    const query = new URLSearchParams();
+    if (params.search) query.set("search", params.search);
+    if (params.isActive !== undefined && params.isActive !== "all")
+      query.set("isActive", params.isActive);
+    if (params.limit) query.set("limit", params.limit);
+    if (params.skip) query.set("skip", params.skip);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return request(`/admin/routes${qs}`);
+  },
+
+  async getRoute(id) {
+    return request(`/admin/routes/${id}`);
+  },
+
+  async getRouteById(id) {
+    return request(`/admin/routes/${id}`);
+  },
+
+  async createRoute(payload) {
+    return request("/admin/routes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateRoute(id, payload) {
+    return request(`/admin/routes/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async deleteRoute(id) {
+    return request(`/admin/routes/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async getUniquePlaces() {
+    return request("/routes/all");
+  },
 };

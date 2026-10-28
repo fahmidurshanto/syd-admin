@@ -11,21 +11,12 @@ import {
   Filter,
   RefreshCw,
   Search,
-<<<<<<< HEAD
   TrendingUp,
+  Luggage,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-=======
-  Filter,
-  Eye,
-  Calendar,
-  AlertCircle,
-  Luggage
-} from 'lucide-react';
-import { api } from '@/lib/api';
->>>>>>> 4ffe744f40dd7cd1a091d258cf3cf67c2bcdd2b1
 
 export default function DashboardOverview() {
   const [bookings, setBookings] = useState([]);
@@ -431,7 +422,12 @@ export default function DashboardOverview() {
                               <span>👤 {b.passengers || 1} pax</span>
                               <span>•</span>
                               <span className="flex items-center gap-0.5 text-slate-600">
-                                <Luggage className="w-3 h-3 text-indigo-500" /> {b.luggage !== undefined ? b.luggage : (b.notes?.match(/Luggage:\s*(\d+)/i)?.[1] || 0)} bags
+                                <Luggage className="w-3 h-3 text-indigo-500" />{" "}
+                                {b.luggage !== undefined
+                                  ? b.luggage
+                                  : b.notes?.match(/Luggage:\s*(\d+)/i)?.[1] ||
+                                    0}{" "}
+                                bags
                               </span>
                             </div>
                           </div>
@@ -525,28 +521,32 @@ export default function DashboardOverview() {
                 </span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-<<<<<<< HEAD
                 <span className="text-xs text-slate-500 block font-semibold">
-                  Vehicle & Passengers
+                  Vehicle & Capacity
                 </span>
                 <span className="text-base font-bold text-indigo-700 block mt-0.5 capitalize">
                   {selectedBooking.vehicleType}
                 </span>
-                <span className="text-xs text-slate-600 block">
-                  Passengers: {selectedBooking.passengers || 1}
-                </span>
-=======
-                <span className="text-xs text-slate-500 block font-semibold">Vehicle & Capacity</span>
-                <span className="text-base font-bold text-indigo-700 block mt-0.5 capitalize">{selectedBooking.vehicleType}</span>
                 <div className="flex items-center gap-2 text-xs text-slate-700 mt-1">
-                  <span>Passengers: <strong className="text-slate-900">{selectedBooking.passengers || 1}</strong></span>
+                  <span>
+                    Passengers:{" "}
+                    <strong className="text-slate-900">
+                      {selectedBooking.passengers || 1}
+                    </strong>
+                  </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
                     <Luggage className="w-3 h-3 text-indigo-600" />
-                    <strong>{selectedBooking.luggage !== undefined ? selectedBooking.luggage : (selectedBooking.notes?.match(/Luggage:\s*(\d+)/i)?.[1] || 0)} bags</strong>
+                    <strong>
+                      {selectedBooking.luggage !== undefined
+                        ? selectedBooking.luggage
+                        : selectedBooking.notes?.match(
+                            /Luggage:\s*(\d+)/i,
+                          )?.[1] || 0}{" "}
+                      bags
+                    </strong>
                   </span>
                 </div>
->>>>>>> 4ffe744f40dd7cd1a091d258cf3cf67c2bcdd2b1
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 col-span-2">
                 <span className="text-xs text-slate-500 block font-semibold">
