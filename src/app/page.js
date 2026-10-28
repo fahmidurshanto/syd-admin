@@ -12,7 +12,8 @@ import {
   Filter,
   Eye,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Luggage
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -327,9 +328,18 @@ export default function DashboardOverview() {
                           )}
                         </td>
                         <td className="py-4 px-4">
-                          <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-700 uppercase">
-                            {b.vehicleType}
-                          </span>
+                          <div className="space-y-1">
+                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-700 uppercase inline-block">
+                              {b.vehicleType}
+                            </span>
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                              <span>👤 {b.passengers || 1} pax</span>
+                              <span>•</span>
+                              <span className="flex items-center gap-0.5 text-slate-600">
+                                <Luggage className="w-3 h-3 text-indigo-500" /> {b.luggage !== undefined ? b.luggage : (b.notes?.match(/Luggage:\s*(\d+)/i)?.[1] || 0)} bags
+                              </span>
+                            </div>
+                          </div>
                         </td>
                         <td className="py-4 px-4 font-bold text-slate-800">
                           ${fareTotal || '0'} AUD
@@ -399,9 +409,16 @@ export default function DashboardOverview() {
                 <span className="text-xs text-slate-500 block">{selectedBooking.passengerEmail}</span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                <span className="text-xs text-slate-500 block font-semibold">Vehicle & Passengers</span>
+                <span className="text-xs text-slate-500 block font-semibold">Vehicle & Capacity</span>
                 <span className="text-base font-bold text-indigo-700 block mt-0.5 capitalize">{selectedBooking.vehicleType}</span>
-                <span className="text-xs text-slate-600 block">Passengers: {selectedBooking.passengers || 1}</span>
+                <div className="flex items-center gap-2 text-xs text-slate-700 mt-1">
+                  <span>Passengers: <strong className="text-slate-900">{selectedBooking.passengers || 1}</strong></span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Luggage className="w-3 h-3 text-indigo-600" />
+                    <strong>{selectedBooking.luggage !== undefined ? selectedBooking.luggage : (selectedBooking.notes?.match(/Luggage:\s*(\d+)/i)?.[1] || 0)} bags</strong>
+                  </span>
+                </div>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 col-span-2">
                 <span className="text-xs text-slate-500 block font-semibold">Locations</span>
