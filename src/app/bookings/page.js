@@ -14,6 +14,7 @@ import {
   Filter,
   Mail,
   MapPin,
+<<<<<<< HEAD
   Phone,
   RefreshCw,
   Search,
@@ -24,6 +25,14 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+=======
+  FileText,
+  Luggage,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
+import { api } from '@/lib/api';
+>>>>>>> 4ffe744f40dd7cd1a091d258cf3cf67c2bcdd2b1
 
 export default function BookingsManagementPage() {
   const [bookings, setBookings] = useState([]);
@@ -433,9 +442,18 @@ export default function BookingsManagementPage() {
                         {formattedTime}
                       </td>
                       <td className="py-4 px-4">
-                        <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-700 uppercase">
-                          {b.vehicleType}
-                        </span>
+                        <div className="space-y-1">
+                          <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-100 border border-slate-200 text-slate-700 uppercase inline-block">
+                            {b.vehicleType}
+                          </span>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+                            <span title="Passengers">👤 {b.passengers || 1} pax</span>
+                            <span className="text-slate-300">•</span>
+                            <span className="flex items-center gap-0.5 text-slate-600" title="Luggage">
+                              <Luggage className="w-3 h-3 text-indigo-500" /> {b.luggage !== undefined ? b.luggage : (b.notes?.match(/Luggage:\s*(\d+)/i)?.[1] || 0)} bags
+                            </span>
+                          </div>
+                        </div>
                       </td>
                       <td className="py-4 px-4 font-bold text-slate-900 whitespace-nowrap">
                         ${fareTotal || "0"} AUD
@@ -577,6 +595,7 @@ export default function BookingsManagementPage() {
                   <Car className="w-3.5 h-3.5 text-indigo-600" /> Vehicle &
                   Capacity
                 </span>
+<<<<<<< HEAD
                 <p className="font-bold text-indigo-700 text-base capitalize">
                   {selectedBooking.vehicleType}
                 </p>
@@ -592,6 +611,18 @@ export default function BookingsManagementPage() {
                     {new Date(selectedBooking.pickupTime).toLocaleString()}
                   </strong>
                 </p>
+=======
+                <p className="font-bold text-indigo-700 text-base capitalize">{selectedBooking.vehicleType}</p>
+                <div className="flex items-center gap-4 text-xs text-slate-700 pt-0.5">
+                  <p>Passengers: <strong className="text-slate-900 font-bold">{selectedBooking.passengers || 1}</strong></p>
+                  <span>•</span>
+                  <p className="flex items-center gap-1">
+                    <Luggage className="w-3.5 h-3.5 text-indigo-600" />
+                    Luggage: <strong className="text-slate-900 font-bold">{selectedBooking.luggage !== undefined ? selectedBooking.luggage : (selectedBooking.notes?.match(/Luggage:\s*(\d+)/i)?.[1] || 0)} bags</strong>
+                  </p>
+                </div>
+                <p className="text-xs text-slate-600">Pickup Date/Time: <strong className="text-slate-800">{new Date(selectedBooking.pickupTime).toLocaleString()}</strong></p>
+>>>>>>> 4ffe744f40dd7cd1a091d258cf3cf67c2bcdd2b1
               </div>
 
               {/* Locations */}
