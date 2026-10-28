@@ -15,14 +15,27 @@ export const api = {
     return res.json();
   },
 
-  async updateBookingStatus(refOrId, status) {
+  async getBooking(refOrId) {
+    const res = await fetch(`${API_BASE}/bookings/${refOrId}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('Failed to fetch booking details');
+    return res.json();
+  },
+
+  async updateBookingDetails(refOrId, payload) {
     const res = await fetch(`${API_BASE}/bookings/${refOrId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error('Failed to update status');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Failed to update booking');
+    }
     return res.json();
+  },
+
+  async updateBookingStatus(refOrId, status) {
+    return this.updateBookingDetails(refOrId, { status });
   },
 
   async cancelBooking(refOrId, reason = 'Cancelled by administrator') {
@@ -31,7 +44,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason }),
     });
-    if (!res.ok) throw new Error('Failed to cancel booking');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Failed to cancel booking');
+    }
     return res.json();
   },
 
@@ -39,7 +55,10 @@ export const api = {
     const res = await fetch(`${API_BASE}/bookings/${refOrId}`, {
       method: 'DELETE',
     });
-    if (!res.ok) throw new Error('Failed to delete booking');
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Failed to delete booking');
+    }
     return res.json();
   },
 
