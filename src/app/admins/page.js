@@ -2,26 +2,32 @@
 
 import {
   AlertCircle,
-  CheckCircle2,
-  Clock,
   Edit,
   KeyRound,
-  Mail,
-  Phone,
-  Plus,
   RefreshCw,
-  Search,
   ShieldAlert,
   ShieldCheck,
   Trash2,
   UserPlus,
   X,
-  XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { api } from "@/lib/api";
+import PageHeader from "@/components/PageHeader";
+import SearchInput from "@/components/SearchInput";
+import ScrollableTable from "@/components/ScrollableTable";
+import { useSearchInput } from "@/hooks/useSearchInput";
+
+const ADMIN_COLUMNS = [
+  { label: "User Details" },
+  { label: "Role" },
+  { label: "Phone" },
+  { label: "Status" },
+  { label: "Last Login" },
+  { label: "Actions", align: "right" },
+];
 
 export default function AdminsManagementPage() {
   const { isSuperAdmin, admin: currentAdmin, loading: authLoading } = useAuth();
@@ -29,7 +35,16 @@ export default function AdminsManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
+
+  const {
+    search,
+    setSearch,
+    debouncedSearch,
+    isSearching,
+    setIsSearching,
+    clear,
+  } = useSearchInput();
+
   const [roleFilter, setRoleFilter] = useState("all");
 
   // Modals
@@ -58,33 +73,75 @@ export default function AdminsManagementPage() {
 
   const [newPassword, setNewPassword] = useState("");
 
-  const fetchAdmins = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const params = {};
-      if (search.trim()) params.search = search.trim();
-      if (roleFilter !== "all") params.role = roleFilter;
+  const fetchAdmins = useCallback(
+    async (searchTerm = debouncedSearch, filter = roleFilter) => {
+      try {
+        setLoading(true);
+        setIsSearching(true);
+        setError(null);
+        const params = {};
+        if (searchTerm && searchTerm.trim()) params.search = searchTerm.trim();
+        if (filter !== "all") params.role = filter;
 
-      const res = await api.getAdmins(params);
-      if (res.success) {
-        setAdmins(res.admins || []);
+        const res = await api.getAdmins(params);
+        if (res.success) {
+          setAdmins(res.admins || []);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(
+          err.message || "Failed to fetch admin users from /api/admin/admins.",
+        );
+      } finally {
+        setLoading(false);
+        setIsSearching(false);
       }
-    } catch (err) {
-      console.error(err);
-      setError(
-        err.message || "Failed to fetch admin users from /api/admin/admins.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [search, roleFilter]);
+    },
+    [debouncedSearch, roleFilter, setIsSearching]
+  );
 
   useEffect(() => {
-    if (isSuperAdmin) {
-      fetchAdmins();
-    }
-  }, [fetchAdmins, isSuperAdmin]);
+    if (!isSuperAdmin) return;
+    let isCurrent = true;
+
+    const performFetch = async () => {
+      try {
+        setLoading(true);
+        setIsSearching(true);
+        setError(null);
+        const params = {};
+        if (debouncedSearch && debouncedSearch.trim()) {
+          params.search = debouncedSearch.trim();
+        }
+        if (roleFilter !== "all") {
+          params.role = roleFilter;
+        }
+
+        const res = await api.getAdmins(params);
+        if (isCurrent && res.success) {
+          setAdmins(res.admins || []);
+        }
+      } catch (err) {
+        if (isCurrent) {
+          console.error(err);
+          setError(
+            err.message || "Failed to fetch admin users from /api/admin/admins.",
+          );
+        }
+      } finally {
+        if (isCurrent) {
+          setLoading(false);
+          setIsSearching(false);
+        }
+      }
+    };
+
+    performFetch();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [debouncedSearch, roleFilter, isSuperAdmin, setIsSearching]);
 
   const handleCreateAdmin = async (e) => {
     e.preventDefault();
@@ -211,38 +268,23 @@ export default function AdminsManagementPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-            <ShieldCheck className="w-6 h-6 text-indigo-600" />
-            Admin Team Management
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Configure administrator accounts, assign superadmin privileges, and
-            manage security.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
+      <PageHeader
+        title="Admin Team Management"
+        description="Configure administrator accounts, assign superadmin privileges, and manage security."
+        icon={ShieldCheck}
+        onRefresh={fetchAdmins}
+        loading={loading}
+        actions={
           <button
-            onClick={fetchAdmins}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
-          >
-            <RefreshCw
-              className={`w-3.5 h-3.5 ${loading ? "animate-spin text-indigo-600" : ""}`}
-            />
-            Refresh
-          </button>
-          <button
+            type="button"
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             Add Administrator
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Role notice if not superadmin */}
       {!isSuperAdmin && currentAdmin && (
@@ -298,25 +340,27 @@ export default function AdminsManagementPage() {
 
       {/* Search & Filter */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full md:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email..."
-            className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          onClear={clear}
+          isLoading={isSearching}
+          placeholder="Search by name or email..."
+        />
 
         <div className="flex items-center gap-3 w-full md:w-auto">
+          {isSearching && (
+            <span className="text-xs text-indigo-600 font-medium animate-pulse">
+              Searching...
+            </span>
+          )}
           <label className="text-xs font-medium text-slate-500">
             Filter Role:
           </label>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
           >
             <option value="all">All Roles</option>
             <option value="superadmin">Superadmin</option>
@@ -334,134 +378,120 @@ export default function AdminsManagementPage() {
       )}
 
       {/* Admins Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/70 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <th className="py-3 px-4">User Details</th>
-                <th className="py-3 px-4">Role</th>
-                <th className="py-3 px-4">Phone</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Last Login</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
-              {loading && admins.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-12 text-center text-slate-400 font-medium"
-                  >
-                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-indigo-500" />
-                    Loading administrators from backend...
-                  </td>
-                </tr>
-              ) : admins.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-12 text-center text-slate-400 font-medium"
-                  >
-                    No administrators found. Please sign in or check server
-                    connection.
-                  </td>
-                </tr>
-              ) : (
-                admins.map((adm) => {
-                  const isCurrent = currentAdmin?.email === adm.email;
-                  return (
-                    <tr
-                      key={adm._id || adm.id}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
-                            {adm.name ? adm.name.charAt(0).toUpperCase() : "A"}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-semibold text-slate-900">
-                                {adm.name}
-                              </span>
-                              {isCurrent && (
-                                <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-medium">
-                                  You
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-slate-500 text-[11px]">
-                              {adm.email}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                            adm.role === "superadmin"
-                              ? "bg-purple-50 text-purple-700 border border-purple-200"
-                              : "bg-blue-50 text-blue-700 border border-blue-200"
-                          }`}
-                        >
-                          {adm.role}
+      <ScrollableTable
+        columns={ADMIN_COLUMNS}
+        loading={loading}
+        isSearching={isSearching}
+        isEmpty={admins.length === 0}
+        maxHeight="max-h-[calc(100vh-420px)]"
+        minHeight="min-h-[300px]"
+        loadingMessage="Loading administrators from backend..."
+        emptyContent={
+          debouncedSearch ? (
+            <div>
+              <p>No administrators found matching "{debouncedSearch}".</p>
+              <button
+                type="button"
+                onClick={clear}
+                className="mt-2 text-indigo-600 hover:text-indigo-800 text-xs font-semibold underline cursor-pointer"
+              >
+                Clear search
+              </button>
+            </div>
+          ) : (
+            "No administrators found. Please sign in or check server connection."
+          )
+        }
+      >
+        {admins.map((adm) => {
+          const isCurrent = currentAdmin?.email === adm.email;
+          return (
+            <tr
+              key={adm._id || adm.id}
+              className="hover:bg-slate-50/80 transition-colors"
+            >
+              <td className="py-3.5 px-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
+                    {adm.name ? adm.name.charAt(0).toUpperCase() : "A"}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-slate-900">
+                        {adm.name}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-medium">
+                          You
                         </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-600">
-                        {adm.phone || "-"}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-                            adm.isActive
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "bg-slate-100 text-slate-600 border-slate-200"
-                          }`}
-                        >
-                          {adm.isActive ? "Active" : "Deactivated"}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-500">
-                        {adm.lastLoginAt
-                          ? new Date(adm.lastLoginAt).toLocaleString()
-                          : "Never"}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => openEditModal(adm)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-indigo-600 transition-colors"
-                            title="Edit Admin"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setPasswordModalAdmin(adm)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-amber-600 transition-colors"
-                            title="Set Password"
-                          >
-                            <KeyRound className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(adm)}
-                            disabled={isCurrent}
-                            className="p-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 text-rose-500 hover:text-rose-700 transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                            title="Delete Admin"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                      )}
+                    </div>
+                    <span className="text-slate-500 text-[11px]">
+                      {adm.email}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td className="py-3.5 px-4">
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                    adm.role === "superadmin"
+                      ? "bg-purple-50 text-purple-700 border border-purple-200"
+                      : "bg-blue-50 text-blue-700 border border-blue-200"
+                  }`}
+                >
+                  {adm.role}
+                </span>
+              </td>
+              <td className="py-3.5 px-4 text-slate-600">
+                {adm.phone || "-"}
+              </td>
+              <td className="py-3.5 px-4">
+                <span
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                    adm.isActive
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-slate-100 text-slate-600 border-slate-200"
+                  }`}
+                >
+                  {adm.isActive ? "Active" : "Deactivated"}
+                </span>
+              </td>
+              <td className="py-3.5 px-4 text-slate-500">
+                {adm.lastLoginAt
+                  ? new Date(adm.lastLoginAt).toLocaleString()
+                  : "Never"}
+              </td>
+              <td className="py-3.5 px-4 text-right">
+                <div className="flex items-center justify-end gap-1.5">
+                  <button
+                    onClick={() => openEditModal(adm)}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-indigo-600 transition-colors cursor-pointer"
+                    title="Edit Admin"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setPasswordModalAdmin(adm)}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-amber-600 transition-colors cursor-pointer"
+                    title="Set Password"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget(adm)}
+                    disabled={isCurrent}
+                    className="p-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 text-rose-500 hover:text-rose-700 transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                    title="Delete Admin"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+      </ScrollableTable>
 
       {/* Modal: Create Admin */}
       {isCreateModalOpen && (

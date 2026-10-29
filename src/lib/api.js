@@ -46,6 +46,12 @@ export const api = {
     });
   },
 
+  async refreshToken() {
+    return request("/admin/refresh", {
+      method: "POST",
+    });
+  },
+
   async getMe() {
     return request("/admin/me");
   },
