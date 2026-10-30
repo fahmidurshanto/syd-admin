@@ -339,28 +339,29 @@ export default function AdminsManagementPage() {
       </div>
 
       {/* Search & Filter */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
         <SearchInput
           value={search}
           onChange={setSearch}
           onClear={clear}
           isLoading={isSearching}
           placeholder="Search by name or email..."
+          className="w-full sm:flex-1 sm:max-w-md"
         />
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
           {isSearching && (
             <span className="text-xs text-indigo-600 font-medium animate-pulse">
               Searching...
             </span>
           )}
-          <label className="text-xs font-medium text-slate-500">
+          <label className="text-xs font-medium text-slate-500 shrink-0">
             Filter Role:
           </label>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
           >
             <option value="all">All Roles</option>
             <option value="superadmin">Superadmin</option>
@@ -495,8 +496,8 @@ export default function AdminsManagementPage() {
 
       {/* Modal: Create Admin */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <UserPlus className="w-4 h-4 text-indigo-600" />
@@ -615,8 +616,8 @@ export default function AdminsManagementPage() {
 
       {/* Modal: Edit Admin */}
       {editingAdmin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Edit className="w-4 h-4 text-indigo-600" />
@@ -733,8 +734,8 @@ export default function AdminsManagementPage() {
 
       {/* Modal: Set Password */}
       {passwordModalAdmin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <KeyRound className="w-4 h-4 text-amber-600" />

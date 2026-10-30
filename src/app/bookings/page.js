@@ -283,87 +283,89 @@ export default function BookingsManagementPage() {
       />
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 flex-1">
           <SearchInput
             value={search}
             onChange={setSearch}
             onClear={clear}
             isLoading={isSearching}
             placeholder="Search reference, name, phone, email..."
-            className="flex-1 min-w-[220px]"
+            className="w-full sm:flex-1 sm:min-w-[220px]"
           />
 
-          {/* Status Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <label
-              htmlFor="booking-status-filter"
-              className="text-xs font-semibold text-slate-500"
-            >
-              Status:
-            </label>
-            <select
-              id="booking-status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
-            >
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="assigned">Assigned</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Status Filter */}
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial justify-between sm:justify-start">
+              <label
+                htmlFor="booking-status-filter"
+                className="text-xs font-semibold text-slate-500"
+              >
+                Status:
+              </label>
+              <select
+                id="booking-status-filter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="assigned">Assigned</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
 
-          {/* Vehicle Type Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <label
-              htmlFor="booking-vehicle-filter"
-              className="text-xs font-semibold text-slate-500"
-            >
-              Vehicle:
-            </label>
-            <select
-              id="booking-vehicle-filter"
-              value={vehicleFilter}
-              onChange={(e) => setVehicleFilter(e.target.value)}
-              className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Vehicles</option>
-              <option value="Chauffeur">Chauffeur</option>
-              <option value="Taxi">Taxi</option>
-              <option value="Sedan">Sedan</option>
-              <option value="SUV">SUV</option>
-              <option value="Van">Van</option>
-            </select>
-          </div>
+            {/* Vehicle Type Filter */}
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial justify-between sm:justify-start">
+              <label
+                htmlFor="booking-vehicle-filter"
+                className="text-xs font-semibold text-slate-500"
+              >
+                Vehicle:
+              </label>
+              <select
+                id="booking-vehicle-filter"
+                value={vehicleFilter}
+                onChange={(e) => setVehicleFilter(e.target.value)}
+                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+              >
+                <option value="all">All Vehicles</option>
+                <option value="Chauffeur">Chauffeur</option>
+                <option value="Taxi">Taxi</option>
+                <option value="Sedan">Sedan</option>
+                <option value="SUV">SUV</option>
+                <option value="Van">Van</option>
+              </select>
+            </div>
 
-          {/* Payment Filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <label
-              htmlFor="booking-payment-filter"
-              className="text-xs font-semibold text-slate-500"
-            >
-              Payment:
-            </label>
-            <select
-              id="booking-payment-filter"
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
-            >
-              <option value="all">All</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-              <option value="refunded">Refunded</option>
-            </select>
+            {/* Payment Filter */}
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial justify-between sm:justify-start">
+              <label
+                htmlFor="booking-payment-filter"
+                className="text-xs font-semibold text-slate-500"
+              >
+                Payment:
+              </label>
+              <select
+                id="booking-payment-filter"
+                value={paymentFilter}
+                onChange={(e) => setPaymentFilter(e.target.value)}
+                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+              >
+                <option value="all">All</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Pending</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <div className="text-xs font-medium text-slate-500">
+        <div className="text-xs font-medium text-slate-500 self-end lg:self-center">
           Showing{" "}
           <span className="font-bold text-slate-800">
             {filteredBookings.length}

@@ -304,16 +304,17 @@ export default function RoutesManagementPage() {
       />
 
       {/* Filter / Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
         <SearchInput
           value={search}
           onChange={setSearch}
           onClear={clear}
           isLoading={isSearching}
           placeholder="Search origin or destination..."
+          className="w-full sm:flex-1 sm:max-w-md"
         />
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
           {isSearching && (
             <span className="text-xs text-indigo-600 font-medium animate-pulse">
               Searching...
@@ -321,7 +322,7 @@ export default function RoutesManagementPage() {
           )}
           <label
             htmlFor="route-status-filter"
-            className="text-xs font-medium text-slate-500"
+            className="text-xs font-medium text-slate-500 shrink-0"
           >
             Status:
           </label>
@@ -329,7 +330,7 @@ export default function RoutesManagementPage() {
             id="route-status-filter"
             value={activeFilter}
             onChange={(e) => setActiveFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
           >
             <option value="all">All Routes</option>
             <option value="active">Active Only</option>
