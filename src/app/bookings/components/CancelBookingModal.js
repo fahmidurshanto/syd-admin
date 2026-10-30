@@ -27,10 +27,14 @@ export default function CancelBookingModal({
           for {cancelModalBooking.passengerName}?
         </p>
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-600">
+          <label
+            htmlFor="cancel-reason-input"
+            className="text-xs font-semibold text-slate-600"
+          >
             Cancellation Reason:
           </label>
           <input
+            id="cancel-reason-input"
             type="text"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}

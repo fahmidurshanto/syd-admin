@@ -2,12 +2,13 @@
 
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import { api } from "./api";
+import { bookingsCache, paymentsCache, routesCache } from "./dataCache";
 
 const AuthContext = createContext(null);
 
@@ -49,6 +50,9 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.warn("Logout error:", e);
     } finally {
+      routesCache.clear();
+      paymentsCache.clear();
+      bookingsCache.clear();
       setAdmin(null);
     }
   };

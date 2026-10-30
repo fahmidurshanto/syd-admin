@@ -1,19 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import {
-  CreditCard,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  AlertCircle,
-  Eye,
-} from "lucide-react";
-import { api } from "@/lib/api";
+import { AlertCircle, CreditCard, Eye } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import SearchInput from "@/components/SearchInput";
 import ScrollableTable from "@/components/ScrollableTable";
+import SearchInput from "@/components/SearchInput";
 import { useSearchInput } from "@/hooks/useSearchInput";
+import { api } from "@/lib/api";
+import { paymentsCache } from "@/lib/dataCache";
 import PaymentDetailModal from "./components/PaymentDetailModal";
 
 const PAYMENT_COLUMNS = [
@@ -26,9 +20,18 @@ const PAYMENT_COLUMNS = [
   { label: "Inspect", align: "right" },
 ];
 
+const getCacheKey = (searchTerm, filter) => {
+  const term =
+    typeof searchTerm === "string" ? searchTerm.trim().toLowerCase() : "";
+  const filt = typeof filter === "string" ? filter : "all";
+  return `${term}__${filt}`;
+};
+
 export default function PaymentsManagementPage() {
-  const [payments, setPayments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [payments, setPayments] = useState(
+    () => paymentsCache.get("default") || [],
+  );
+  const [loading, setLoading] = useState(() => !paymentsCache.has("default"));
   const [error, setError] = useState(null);
 
   const {
@@ -48,23 +51,48 @@ export default function PaymentsManagementPage() {
   const [fetchingDetail, setFetchingDetail] = useState(false);
 
   const fetchPayments = useCallback(
-    async (searchTerm = debouncedSearch, filter = statusFilter) => {
+    async (
+      searchTerm = debouncedSearch,
+      filter = statusFilter,
+      force = false,
+    ) => {
+      const term =
+        typeof searchTerm === "string" ? searchTerm : debouncedSearch;
+      const filt = typeof filter === "string" ? filter : statusFilter;
+      const shouldForce = force === true || typeof searchTerm !== "string";
+      const isDefault = !term?.trim() && filt === "all";
+      const cacheKey = isDefault ? "default" : getCacheKey(term, filt);
+
+      if (!shouldForce && paymentsCache.has(cacheKey)) {
+        setPayments(paymentsCache.get(cacheKey));
+        setLoading(false);
+        setIsSearching(false);
+        return;
+      }
+
       try {
-        setLoading(true);
+        if (shouldForce || !paymentsCache.has("default")) {
+          setLoading(true);
+        }
         setIsSearching(true);
         setError(null);
 
         const params = { limit: 100 };
-        if (searchTerm && searchTerm.trim()) {
-          params.bookingNumber = searchTerm.trim();
+        if (term?.trim()) {
+          params.bookingNumber = term.trim();
         }
-        if (filter !== "all") {
-          params.status = filter;
+        if (filt !== "all") {
+          params.status = filt;
         }
 
         const res = await api.getPayments(params);
         if (res.success) {
-          setPayments(res.payments || []);
+          const list = res.payments || [];
+          paymentsCache.set(cacheKey, list);
+          if (isDefault) {
+            paymentsCache.set("default", list);
+          }
+          setPayments(list);
         }
       } catch (err) {
         console.error(err);
@@ -74,21 +102,34 @@ export default function PaymentsManagementPage() {
         setIsSearching(false);
       }
     },
-    [debouncedSearch, statusFilter, setIsSearching]
+    [debouncedSearch, statusFilter, setIsSearching],
   );
 
-  // Trigger fetch with race condition protection
+  // Trigger fetch with race condition protection and cache lookup
   useEffect(() => {
     let isCurrent = true;
+    const isDefault = !debouncedSearch?.trim() && statusFilter === "all";
+    const cacheKey = isDefault
+      ? "default"
+      : getCacheKey(debouncedSearch, statusFilter);
+
+    if (paymentsCache.has(cacheKey)) {
+      setPayments(paymentsCache.get(cacheKey));
+      setLoading(false);
+      setIsSearching(false);
+      return;
+    }
 
     const performFetch = async () => {
       try {
-        setLoading(true);
+        if (!paymentsCache.has("default")) {
+          setLoading(true);
+        }
         setIsSearching(true);
         setError(null);
 
         const params = { limit: 100 };
-        if (debouncedSearch && debouncedSearch.trim()) {
+        if (debouncedSearch?.trim()) {
           params.bookingNumber = debouncedSearch.trim();
         }
         if (statusFilter !== "all") {
@@ -97,7 +138,12 @@ export default function PaymentsManagementPage() {
 
         const res = await api.getPayments(params);
         if (isCurrent && res.success) {
-          setPayments(res.payments || []);
+          const list = res.payments || [];
+          paymentsCache.set(cacheKey, list);
+          if (isDefault) {
+            paymentsCache.set("default", list);
+          }
+          setPayments(list);
         }
       } catch (err) {
         if (isCurrent) {
@@ -145,17 +191,19 @@ export default function PaymentsManagementPage() {
     return acc;
   }, 0);
 
-  const succeededCount = payments.filter((p) => p.status === "succeeded").length;
+  const succeededCount = payments.filter(
+    (p) => p.status === "succeeded",
+  ).length;
   const pendingCount = payments.filter((p) =>
     [
       "requires_payment_method",
       "requires_action",
       "requires_confirmation",
       "processing",
-    ].includes(p.status)
+    ].includes(p.status),
   ).length;
   const failedCount = payments.filter((p) =>
-    ["failed", "canceled"].includes(p.status)
+    ["failed", "canceled"].includes(p.status),
   ).length;
 
   const getStatusBadge = (status) => {
@@ -176,6 +224,11 @@ export default function PaymentsManagementPage() {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    paymentsCache.clear();
+    await fetchPayments(debouncedSearch, statusFilter, true);
+  }, [debouncedSearch, statusFilter, fetchPayments]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -183,12 +236,14 @@ export default function PaymentsManagementPage() {
         title="Payments Management"
         description="Monitor Stripe transactions, checkout sessions, and customer payment statuses."
         icon={CreditCard}
-        onRefresh={fetchPayments}
+        onRefresh={handleRefresh}
         loading={loading}
         actions={
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 shadow-xs">
-              <span className="text-slate-400 font-normal">Settled Volume:</span>
+              <span className="text-slate-400 font-normal">
+                Settled Volume:
+              </span>
               <span className="text-emerald-600 font-bold">
                 ${totalVolume.toFixed(2)} AUD
               </span>
@@ -213,8 +268,14 @@ export default function PaymentsManagementPage() {
               Searching...
             </span>
           )}
-          <label className="text-xs font-medium text-slate-500">Status:</label>
+          <label
+            htmlFor="payment-status-filter"
+            className="text-xs font-medium text-slate-500"
+          >
+            Status:
+          </label>
           <select
+            id="payment-status-filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
@@ -277,7 +338,7 @@ export default function PaymentsManagementPage() {
             <td className="py-3.5 px-4">
               <span
                 className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${getStatusBadge(
-                  p.status
+                  p.status,
                 )}`}
               >
                 {p.status}

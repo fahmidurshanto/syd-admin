@@ -1,23 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import {
-  CalendarDays,
-  Car,
-  CheckCircle2,
-  Clock,
-  Eye,
-  Luggage,
-  Trash2,
-  XCircle,
-  AlertTriangle,
-} from "lucide-react";
-import Link from "next/link";
-import { api } from "@/lib/api";
+import { CalendarDays, Eye, Luggage, Trash2, XCircle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import SearchInput from "@/components/SearchInput";
 import ScrollableTable from "@/components/ScrollableTable";
+import SearchInput from "@/components/SearchInput";
 import { useSearchInput } from "@/hooks/useSearchInput";
+import { api } from "@/lib/api";
+import { bookingsCache } from "@/lib/dataCache";
 import BookingDetailModal from "./components/BookingDetailModal";
 import CancelBookingModal from "./components/CancelBookingModal";
 import DeleteBookingModal from "./components/DeleteBookingModal";
@@ -34,10 +24,16 @@ const BOOKING_COLUMNS = [
   { label: "Actions", align: "right" },
 ];
 
+const getCacheKey = (status, vehicle) => `${status}__${vehicle}`;
+
 export default function BookingsManagementPage() {
-  const [bookings, setBookings] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState(
+    () => bookingsCache.get("default")?.bookings || [],
+  );
+  const [totalCount, setTotalCount] = useState(
+    () => bookingsCache.get("default")?.totalCount || 0,
+  );
+  const [loading, setLoading] = useState(() => !bookingsCache.has("default"));
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -59,40 +55,84 @@ export default function BookingsManagementPage() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [cancelModalBooking, setCancelModalBooking] = useState(null);
   const [cancelReason, setCancelReason] = useState(
-    "Cancelled by admin/dispatcher"
+    "Cancelled by admin/dispatcher",
   );
   const [deleteConfirmBooking, setDeleteConfirmBooking] = useState(null);
   const [notesEdit, setNotesEdit] = useState("");
 
-  const fetchBookings = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await api.getBookings({
-        status: statusFilter !== "all" ? statusFilter : undefined,
-        vehicleType: vehicleFilter !== "all" ? vehicleFilter : undefined,
-        limit: 100,
-      });
-      if (res.success) {
-        setBookings(res.bookings || []);
-        setTotalCount(res.total || (res.bookings ? res.bookings.length : 0));
+  const fetchBookings = useCallback(
+    async (force = false) => {
+      const shouldForce =
+        force === true || (typeof force === "object" && force !== null);
+      const isDefault = statusFilter === "all" && vehicleFilter === "all";
+      const cacheKey = isDefault
+        ? "default"
+        : getCacheKey(statusFilter, vehicleFilter);
+
+      if (!shouldForce && bookingsCache.has(cacheKey)) {
+        const cached = bookingsCache.get(cacheKey);
+        setBookings(cached.bookings || []);
+        setTotalCount(cached.totalCount || 0);
+        setLoading(false);
+        setIsSearching(false);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to fetch bookings list.");
-    } finally {
-      setLoading(false);
-      setIsSearching(false);
-    }
-  }, [statusFilter, vehicleFilter, setIsSearching]);
+
+      try {
+        if (shouldForce || !bookingsCache.has("default")) {
+          setLoading(true);
+        }
+        setError(null);
+        const res = await api.getBookings({
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          vehicleType: vehicleFilter !== "all" ? vehicleFilter : undefined,
+          limit: 100,
+        });
+        if (res.success) {
+          const list = res.bookings || [];
+          const count = res.total || list.length;
+          const cacheData = { bookings: list, totalCount: count };
+          bookingsCache.set(cacheKey, cacheData);
+          if (isDefault) {
+            bookingsCache.set("default", cacheData);
+          }
+          setBookings(list);
+          setTotalCount(count);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Failed to fetch bookings list.");
+      } finally {
+        setLoading(false);
+        setIsSearching(false);
+      }
+    },
+    [statusFilter, vehicleFilter, setIsSearching],
+  );
 
   useEffect(() => {
+    const isDefault = statusFilter === "all" && vehicleFilter === "all";
+    const cacheKey = isDefault
+      ? "default"
+      : getCacheKey(statusFilter, vehicleFilter);
+
+    if (bookingsCache.has(cacheKey)) {
+      const cached = bookingsCache.get(cacheKey);
+      setBookings(cached.bookings || []);
+      setTotalCount(cached.totalCount || 0);
+      setLoading(false);
+      setIsSearching(false);
+      return;
+    }
+
     fetchBookings();
-  }, [fetchBookings]);
+  }, [fetchBookings, statusFilter, vehicleFilter, setIsSearching]);
 
   // Turn off searching spinner when debounced value updates
   useEffect(() => {
-    setIsSearching(false);
+    if (debouncedSearch !== undefined) {
+      setIsSearching(false);
+    }
   }, [debouncedSearch, setIsSearching]);
 
   // Filtered bookings based on debounced search and payment filter
@@ -115,7 +155,8 @@ export default function BookingsManagementPage() {
     try {
       setActionLoading(true);
       await api.updateBookingStatus(refOrId, newStatus);
-      await fetchBookings();
+      bookingsCache.clear();
+      await fetchBookings(true);
       if (
         selectedBooking &&
         (selectedBooking.bookingNumber === refOrId ||
@@ -138,7 +179,8 @@ export default function BookingsManagementPage() {
         notes: notesEdit,
       });
       setSelectedBooking((prev) => ({ ...prev, notes: notesEdit }));
-      await fetchBookings();
+      bookingsCache.clear();
+      await fetchBookings(true);
       alert("Notes saved successfully");
     } catch (e) {
       alert("Failed to save notes: " + e.message);
@@ -153,10 +195,11 @@ export default function BookingsManagementPage() {
       setActionLoading(true);
       await api.cancelBooking(
         cancelModalBooking.bookingNumber,
-        cancelReason || "Cancelled by admin"
+        cancelReason || "Cancelled by admin",
       );
       setCancelModalBooking(null);
-      await fetchBookings();
+      bookingsCache.clear();
+      await fetchBookings(true);
     } catch (e) {
       alert("Error cancelling booking: " + e.message);
     } finally {
@@ -176,7 +219,8 @@ export default function BookingsManagementPage() {
       ) {
         setSelectedBooking(null);
       }
-      await fetchBookings();
+      bookingsCache.clear();
+      await fetchBookings(true);
     } catch (e) {
       alert("Error deleting booking: " + e.message);
     } finally {
@@ -222,6 +266,11 @@ export default function BookingsManagementPage() {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    bookingsCache.clear();
+    await fetchBookings(true);
+  }, [fetchBookings]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -229,7 +278,7 @@ export default function BookingsManagementPage() {
         title="Bookings Management"
         description="Search, update rides, manage dispatch status, passenger details and cancellations."
         icon={CalendarDays}
-        onRefresh={fetchBookings}
+        onRefresh={handleRefresh}
         loading={loading}
       />
 
@@ -247,10 +296,14 @@ export default function BookingsManagementPage() {
 
           {/* Status Filter */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <span className="text-xs font-semibold text-slate-500">
+            <label
+              htmlFor="booking-status-filter"
+              className="text-xs font-semibold text-slate-500"
+            >
               Status:
-            </span>
+            </label>
             <select
+              id="booking-status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
@@ -267,10 +320,14 @@ export default function BookingsManagementPage() {
 
           {/* Vehicle Type Filter */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <span className="text-xs font-semibold text-slate-500">
+            <label
+              htmlFor="booking-vehicle-filter"
+              className="text-xs font-semibold text-slate-500"
+            >
               Vehicle:
-            </span>
+            </label>
             <select
+              id="booking-vehicle-filter"
               value={vehicleFilter}
               onChange={(e) => setVehicleFilter(e.target.value)}
               className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
@@ -286,10 +343,14 @@ export default function BookingsManagementPage() {
 
           {/* Payment Filter */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <span className="text-xs font-semibold text-slate-500">
+            <label
+              htmlFor="booking-payment-filter"
+              className="text-xs font-semibold text-slate-500"
+            >
               Payment:
-            </span>
+            </label>
             <select
+              id="booking-payment-filter"
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
               className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
@@ -431,7 +492,7 @@ export default function BookingsManagementPage() {
               <td className="py-4 px-4 whitespace-nowrap">
                 <span
                   className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getPaymentBadge(
-                    b.paymentStatus
+                    b.paymentStatus,
                   )}`}
                 >
                   {b.paymentStatus}
@@ -440,7 +501,7 @@ export default function BookingsManagementPage() {
               <td className="py-4 px-4 whitespace-nowrap">
                 <span
                   className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusBadge(
-                    b.status
+                    b.status,
                   )}`}
                 >
                   {b.status}

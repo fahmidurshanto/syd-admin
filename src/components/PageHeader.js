@@ -30,7 +30,7 @@ export default function PageHeader({
         {onRefresh && (
           <button
             type="button"
-            onClick={onRefresh}
+            onClick={() => onRefresh?.()}
             disabled={loading}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 shadow-xs transition-colors cursor-pointer disabled:opacity-50"
           >

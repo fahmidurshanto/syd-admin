@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import {
-  Route as RouteIcon,
-  Plus,
-  Edit,
-  Trash2,
-  MapPin,
-  Clock,
   AlertCircle,
+  Clock,
+  Edit,
+  MapPin,
+  Plus,
+  Route as RouteIcon,
+  Trash2,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { useCallback, useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
-import SearchInput from "@/components/SearchInput";
 import ScrollableTable from "@/components/ScrollableTable";
+import SearchInput from "@/components/SearchInput";
 import { useSearchInput } from "@/hooks/useSearchInput";
-import RouteModal from "./components/RouteModal";
+import { api } from "@/lib/api";
+import { routesCache } from "@/lib/routesCache";
 import DeleteRouteModal from "./components/DeleteRouteModal";
+import RouteModal from "./components/RouteModal";
 
 const ROUTE_COLUMNS = [
   { label: "Route Path" },
@@ -27,9 +28,16 @@ const ROUTE_COLUMNS = [
   { label: "Actions", align: "right" },
 ];
 
+const getCacheKey = (searchTerm, filter) => {
+  const term =
+    typeof searchTerm === "string" ? searchTerm.trim().toLowerCase() : "";
+  const filt = typeof filter === "string" ? filter : "all";
+  return `${term}__${filt}`;
+};
+
 export default function RoutesManagementPage() {
-  const [routes, setRoutes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [routes, setRoutes] = useState(() => routesCache.get("default") || []);
+  const [loading, setLoading] = useState(() => !routesCache.has("default"));
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
 
@@ -62,18 +70,43 @@ export default function RoutesManagementPage() {
   });
 
   const fetchRoutes = useCallback(
-    async (searchTerm = debouncedSearch, filter = activeFilter) => {
+    async (
+      searchTerm = debouncedSearch,
+      filter = activeFilter,
+      force = false,
+    ) => {
+      const term =
+        typeof searchTerm === "string" ? searchTerm : debouncedSearch;
+      const filt = typeof filter === "string" ? filter : activeFilter;
+      const shouldForce = force === true || typeof searchTerm !== "string";
+      const isDefault = !term?.trim() && filt === "all";
+      const cacheKey = isDefault ? "default" : getCacheKey(term, filt);
+
+      if (!shouldForce && routesCache.has(cacheKey)) {
+        setRoutes(routesCache.get(cacheKey));
+        setLoading(false);
+        setIsSearching(false);
+        return;
+      }
+
       try {
-        setLoading(true);
+        if (shouldForce || !routesCache.has("default")) {
+          setLoading(true);
+        }
         setIsSearching(true);
         setError(null);
         const params = { limit: 500 };
-        if (searchTerm && searchTerm.trim()) params.search = searchTerm.trim();
-        if (filter !== "all") params.isActive = filter === "active";
+        if (term?.trim()) params.search = term.trim();
+        if (filt !== "all") params.isActive = filt === "active";
 
         const res = await api.getRoutes(params);
         if (res.success) {
-          setRoutes(res.routes || res.places || []);
+          const list = res.routes || res.places || [];
+          routesCache.set(cacheKey, list);
+          if (isDefault) {
+            routesCache.set("default", list);
+          }
+          setRoutes(list);
         }
       } catch (err) {
         console.error(err);
@@ -83,20 +116,33 @@ export default function RoutesManagementPage() {
         setIsSearching(false);
       }
     },
-    [debouncedSearch, activeFilter, setIsSearching]
+    [debouncedSearch, activeFilter, setIsSearching],
   );
 
-  // Trigger search with race condition prevention
+  // Trigger search with race condition prevention and cache lookup
   useEffect(() => {
     let isCurrent = true;
+    const isDefault = !debouncedSearch?.trim() && activeFilter === "all";
+    const cacheKey = isDefault
+      ? "default"
+      : getCacheKey(debouncedSearch, activeFilter);
+
+    if (routesCache.has(cacheKey)) {
+      setRoutes(routesCache.get(cacheKey));
+      setLoading(false);
+      setIsSearching(false);
+      return;
+    }
 
     const performFetch = async () => {
       try {
-        setLoading(true);
+        if (!routesCache.has("default")) {
+          setLoading(true);
+        }
         setIsSearching(true);
         setError(null);
         const params = { limit: 500 };
-        if (debouncedSearch && debouncedSearch.trim()) {
+        if (debouncedSearch?.trim()) {
           params.search = debouncedSearch.trim();
         }
         if (activeFilter !== "all") {
@@ -105,7 +151,12 @@ export default function RoutesManagementPage() {
 
         const res = await api.getRoutes(params);
         if (isCurrent && res.success) {
-          setRoutes(res.routes || res.places || []);
+          const list = res.routes || res.places || [];
+          routesCache.set(cacheKey, list);
+          if (isDefault) {
+            routesCache.set("default", list);
+          }
+          setRoutes(list);
         }
       } catch (err) {
         if (isCurrent) {
@@ -201,7 +252,8 @@ export default function RoutesManagementPage() {
       }
 
       setIsModalOpen(false);
-      await fetchRoutes();
+      routesCache.clear();
+      await fetchRoutes(debouncedSearch, activeFilter, true);
     } catch (err) {
       alert(`Error saving route: ${err.message}`);
     } finally {
@@ -216,13 +268,19 @@ export default function RoutesManagementPage() {
       const routeId = deleteTarget._id || deleteTarget.id;
       await api.deleteRoute(routeId);
       setDeleteTarget(null);
-      await fetchRoutes();
+      routesCache.clear();
+      await fetchRoutes(debouncedSearch, activeFilter, true);
     } catch (err) {
       alert(`Failed to delete route: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handleRefresh = useCallback(async () => {
+    routesCache.clear();
+    await fetchRoutes(debouncedSearch, activeFilter, true);
+  }, [debouncedSearch, activeFilter, fetchRoutes]);
 
   return (
     <div className="space-y-6">
@@ -231,7 +289,7 @@ export default function RoutesManagementPage() {
         title="Routes & Fares"
         description="Manage origin-destination pairs, fixed vehicle fares, and travel durations."
         icon={RouteIcon}
-        onRefresh={fetchRoutes}
+        onRefresh={handleRefresh}
         loading={loading}
         actions={
           <button
@@ -261,8 +319,14 @@ export default function RoutesManagementPage() {
               Searching...
             </span>
           )}
-          <label className="text-xs font-medium text-slate-500">Status:</label>
+          <label
+            htmlFor="route-status-filter"
+            className="text-xs font-medium text-slate-500"
+          >
+            Status:
+          </label>
           <select
+            id="route-status-filter"
             value={activeFilter}
             onChange={(e) => setActiveFilter(e.target.value)}
             className="px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
