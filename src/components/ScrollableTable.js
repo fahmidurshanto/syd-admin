@@ -31,7 +31,9 @@ export default function ScrollableTable({
         </div>
       )}
 
-      <div className={`overflow-x-auto overflow-y-auto ${maxHeight} ${minHeight}`}>
+      <div
+        className={`overflow-x-auto overflow-y-auto custom-scrollbar ${maxHeight} ${minHeight}`}
+      >
         <table className="w-full text-left border-collapse relative">
           <thead className="sticky top-0 z-10 bg-slate-50 border-b border-slate-200 shadow-xs">
             <tr className="text-[11px] font-bold uppercase tracking-wider text-slate-500">

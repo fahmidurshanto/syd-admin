@@ -1,6 +1,6 @@
 "use client";
 
-import { Route as RouteIcon, X } from "lucide-react";
+import { MapPin, Route as RouteIcon, Users, X } from "lucide-react";
 
 export default function RouteModal({
   isOpen,
@@ -31,10 +31,11 @@ export default function RouteModal({
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4 text-xs">
+          {/* Origin & Destination */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                Origin / Pickup
+                Origin / Pickup *
               </label>
               <input
                 type="text"
@@ -43,13 +44,13 @@ export default function RouteModal({
                 onChange={(e) =>
                   setFormData({ ...formData, firstPlace: e.target.value })
                 }
-                placeholder="e.g. Sydney Airport"
+                placeholder="e.g. Sydney Airport (SYD)"
                 className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
-                Destination / Dropoff
+                Destination / Dropoff *
               </label>
               <input
                 type="text"
@@ -64,44 +65,99 @@ export default function RouteModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Chauffeur Fare ($ AUD)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.chauffeurFare}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    chauffeurFare: e.target.value,
-                  })
-                }
-                placeholder="e.g. 120"
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Taxi Fare ($ AUD)
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.taxiFare}
-                onChange={(e) =>
-                  setFormData({ ...formData, taxiFare: e.target.value })
-                }
-                placeholder="e.g. 75"
-                className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500"
-              />
+          {/* Base Vehicle Fares */}
+          <div>
+            <span className="block font-semibold text-slate-700 mb-1.5">
+              Base Vehicle Fares ($ AUD) *
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+              <div>
+                <label className="block font-medium text-slate-600 mb-1">
+                  Chauffeur Fare
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.chauffeurFare}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      chauffeurFare: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. 120"
+                  className="w-full p-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block font-medium text-slate-600 mb-1">
+                  Taxi Fare
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.taxiFare}
+                  onChange={(e) =>
+                    setFormData({ ...formData, taxiFare: e.target.value })
+                  }
+                  placeholder="e.g. 75"
+                  className="w-full p-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
             </div>
           </div>
 
+          {/* Increase Fare Per Person (New Schema Field) */}
+          <div>
+            <div className="flex items-center gap-1.5 font-semibold text-slate-700 mb-1.5">
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Increase Fare Per Passenger (Optional)</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-indigo-50/40 rounded-xl border border-indigo-100">
+              <div>
+                <label className="block font-medium text-slate-600 mb-1">
+                  Extra / Person (Chauffeur)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.chauffeurExtraPerPerson}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      chauffeurExtraPerPerson: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. 15"
+                  className="w-full p-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+              <div>
+                <label className="block font-medium text-slate-600 mb-1">
+                  Extra / Person (Taxi)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.taxiExtraPerPerson}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      taxiExtraPerPerson: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. 10"
+                  className="w-full p-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Distance and Duration */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-700 mb-1">
@@ -136,6 +192,90 @@ export default function RouteModal({
             </div>
           </div>
 
+          {/* Location Specific Details (Optional) */}
+          <div>
+            <div className="flex items-center gap-1.5 font-semibold text-slate-700 mb-1.5">
+              <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Location Details & Codes (Optional)</span>
+            </div>
+            <div className="space-y-2 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
+                    Pickup Full Address
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.firstPlaceAddress}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        firstPlaceAddress: e.target.value,
+                      })
+                    }
+                    placeholder="Mascot NSW 2020, Australia"
+                    className="w-full p-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
+                    Pickup Code
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.firstPlaceCode}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        firstPlaceCode: e.target.value,
+                      })
+                    }
+                    placeholder="SYD"
+                    className="w-full p-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white uppercase"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
+                    Dropoff Full Address
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastPlaceAddress}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lastPlaceAddress: e.target.value,
+                      })
+                    }
+                    placeholder="Sydney NSW 2000, Australia"
+                    className="w-full p-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-600 mb-0.5">
+                    Dropoff Code
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.lastPlaceCode}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        lastPlaceCode: e.target.value,
+                      })
+                    }
+                    placeholder="CBD"
+                    className="w-full p-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 bg-white uppercase"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes */}
           <div>
             <label className="block font-semibold text-slate-700 mb-1">
               Notes / Description
@@ -151,6 +291,7 @@ export default function RouteModal({
             />
           </div>
 
+          {/* Active status */}
           <div className="flex items-center gap-2 pt-1">
             <input
               type="checkbox"
@@ -169,6 +310,7 @@ export default function RouteModal({
             </label>
           </div>
 
+          {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
