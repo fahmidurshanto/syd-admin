@@ -62,14 +62,8 @@ export default function RoutesManagementPage() {
     lastPlace: "",
     chauffeurFare: "",
     taxiFare: "",
-    chauffeurExtraPerPerson: "",
-    taxiExtraPerPerson: "",
     distanceKm: "",
     durationMin: "",
-    firstPlaceAddress: "",
-    firstPlaceCode: "",
-    lastPlaceAddress: "",
-    lastPlaceCode: "",
     currency: "AUD",
     isActive: true,
     notes: "",
@@ -191,14 +185,8 @@ export default function RoutesManagementPage() {
       lastPlace: "",
       chauffeurFare: "",
       taxiFare: "",
-      chauffeurExtraPerPerson: "",
-      taxiExtraPerPerson: "",
       distanceKm: "",
       durationMin: "",
-      firstPlaceAddress: "",
-      firstPlaceCode: "",
-      lastPlaceAddress: "",
-      lastPlaceCode: "",
       currency: "AUD",
       isActive: true,
       notes: "",
@@ -213,26 +201,13 @@ export default function RoutesManagementPage() {
         ? Object.fromEntries(route.vehicleAndFares)
         : route.vehicleAndFares || {};
 
-    const extraFares =
-      route.increaseFarePerPerson instanceof Map
-        ? Object.fromEntries(route.increaseFarePerPerson)
-        : route.increaseFarePerPerson || {};
-
     setFormData({
       firstPlace: route.firstPlace || "",
       lastPlace: route.lastPlace || "",
       chauffeurFare: fares.Chauffeur !== undefined ? fares.Chauffeur : "",
       taxiFare: fares.Taxi !== undefined ? fares.Taxi : "",
-      chauffeurExtraPerPerson:
-        extraFares.Chauffeur !== undefined ? extraFares.Chauffeur : "",
-      taxiExtraPerPerson:
-        extraFares.Taxi !== undefined ? extraFares.Taxi : "",
       distanceKm: route.distanceKm || "",
       durationMin: route.durationMin || "",
-      firstPlaceAddress: route.firstPlaceDetails?.address || "",
-      firstPlaceCode: route.firstPlaceDetails?.code || "",
-      lastPlaceAddress: route.lastPlaceDetails?.address || "",
-      lastPlaceCode: route.lastPlaceDetails?.code || "",
       currency: route.currency || "AUD",
       isActive: route.isActive !== undefined ? route.isActive : true,
       notes: route.notes || "",
@@ -258,32 +233,13 @@ export default function RoutesManagementPage() {
         return;
       }
 
-      const increaseFarePerPerson = {};
-      if (formData.chauffeurExtraPerPerson !== "") {
-        increaseFarePerPerson.Chauffeur = Number(formData.chauffeurExtraPerPerson);
-      }
-      if (formData.taxiExtraPerPerson !== "") {
-        increaseFarePerPerson.Taxi = Number(formData.taxiExtraPerPerson);
-      }
-
-      const firstPlaceDetails = {};
-      if (formData.firstPlaceAddress) firstPlaceDetails.address = formData.firstPlaceAddress.trim();
-      if (formData.firstPlaceCode) firstPlaceDetails.code = formData.firstPlaceCode.trim();
-
-      const lastPlaceDetails = {};
-      if (formData.lastPlaceAddress) lastPlaceDetails.address = formData.lastPlaceAddress.trim();
-      if (formData.lastPlaceCode) lastPlaceDetails.code = formData.lastPlaceCode.trim();
-
       const payload = {
         firstPlace: formData.firstPlace.trim(),
         lastPlace: formData.lastPlace.trim(),
         vehicleAndFares,
-        increaseFarePerPerson,
         currency: formData.currency.toUpperCase() || "AUD",
         distanceKm: formData.distanceKm ? Number(formData.distanceKm) : null,
         durationMin: formData.durationMin ? Number(formData.durationMin) : null,
-        firstPlaceDetails,
-        lastPlaceDetails,
         isActive: formData.isActive,
         notes: formData.notes.trim(),
       };
@@ -461,28 +417,14 @@ export default function RoutesManagementPage() {
               </td>
               <td className="py-3.5 px-4 font-semibold text-slate-900">
                 {fares.Chauffeur !== undefined ? (
-                  <div>
-                    <div>${fares.Chauffeur} {currency}</div>
-                    {route.increaseFarePerPerson?.Chauffeur ? (
-                      <span className="text-[10px] text-indigo-600 font-normal">
-                        +${route.increaseFarePerPerson.Chauffeur}/person
-                      </span>
-                    ) : null}
-                  </div>
+                  `$${fares.Chauffeur} ${currency}`
                 ) : (
                   <span className="text-slate-400 font-normal">N/A</span>
                 )}
               </td>
               <td className="py-3.5 px-4 font-semibold text-slate-900">
                 {fares.Taxi !== undefined ? (
-                  <div>
-                    <div>${fares.Taxi} {currency}</div>
-                    {route.increaseFarePerPerson?.Taxi ? (
-                      <span className="text-[10px] text-amber-600 font-normal">
-                        +${route.increaseFarePerPerson.Taxi}/person
-                      </span>
-                    ) : null}
-                  </div>
+                  `$${fares.Taxi} ${currency}`
                 ) : (
                   <span className="text-slate-400 font-normal">N/A</span>
                 )}

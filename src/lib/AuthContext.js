@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -14,7 +13,6 @@ import { bookingsCache, paymentsCache, routesCache } from "./dataCache";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const router = useRouter();
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,8 +54,6 @@ export function AuthProvider({ children }) {
       paymentsCache.clear();
       bookingsCache.clear();
       setAdmin(null);
-      router.push("/login");
-      router.refresh();
     }
   };
 

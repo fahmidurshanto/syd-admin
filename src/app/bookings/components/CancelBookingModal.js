@@ -13,8 +13,8 @@ export default function CancelBookingModal({
   if (!cancelModalBooking) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full shadow-2xl relative text-slate-800 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl relative text-slate-800 space-y-4">
         <div className="flex items-center gap-3 text-amber-600">
           <AlertTriangle className="w-6 h-6" />
           <h3 className="text-lg font-bold text-slate-900">Cancel Booking</h3>
