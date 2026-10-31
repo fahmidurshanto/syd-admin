@@ -87,7 +87,7 @@ export default function AdminLayoutContent({ children }) {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 py-5 px-4 sm:px-6 md:py-8 lg:px-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 py-5 px-4 sm:px-6 md:py-8 lg:px-0 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>
