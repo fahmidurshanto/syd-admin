@@ -216,4 +216,36 @@ export const api = {
   async getUniquePlaces() {
     return request("/routes/all");
   },
+
+  /* ==========================================================================
+     CONTACTS / ENQUIRIES MANAGEMENT (/api/admin/contacts)
+     ========================================================================== */
+  async getContacts(params = {}) {
+    const query = new URLSearchParams();
+    if (params.status && params.status !== "all")
+      query.set("status", params.status);
+    if (params.search) query.set("search", params.search);
+    if (params.page) query.set("page", params.page);
+    if (params.limit) query.set("limit", params.limit);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    return request(`/admin/contacts${qs}`);
+  },
+
+  async getContact(id) {
+    return request(`/admin/contacts/${id}`);
+  },
+
+  async updateContactStatus(id, payload) {
+    return request(`/admin/contacts/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async deleteContact(id) {
+    return request(`/admin/contacts/${id}`, {
+      method: "DELETE",
+    });
+  },
 };

@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogIn,
   LogOut,
+  Mail,
   Route,
   ShieldCheck,
   UserCheck,
@@ -26,6 +27,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { label: "Bookings", href: "/bookings", icon: CalendarDays },
     { label: "Routes & Fares", href: "/routes", icon: Route },
     { label: "Payments", href: "/payments", icon: CreditCard },
+    { label: "Contacts", href: "/contacts", icon: Mail },
     {
       label: "Admin Team",
       href: "/admins",

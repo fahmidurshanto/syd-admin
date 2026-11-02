@@ -33,3 +33,4 @@ export function createMemoryCache() {
 export const routesCache = createMemoryCache();
 export const paymentsCache = createMemoryCache();
 export const bookingsCache = createMemoryCache();
+export const contactsCache = createMemoryCache();
