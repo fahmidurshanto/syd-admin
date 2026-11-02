@@ -37,7 +37,7 @@ export default function BookingDetailModal({
               {selectedBooking.bookingNumber}
               <span
                 className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase ${getStatusBadge(
-                  selectedBooking.status
+                  selectedBooking.status,
                 )}`}
               >
                 {selectedBooking.status}
@@ -153,13 +153,15 @@ export default function BookingDetailModal({
               <p className="text-slate-700">
                 <strong className="text-slate-900">Pickup:</strong>{" "}
                 {typeof selectedBooking.pickup === "object"
-                  ? selectedBooking.pickup.name || selectedBooking.pickup.address
+                  ? selectedBooking.pickup.name ||
+                    selectedBooking.pickup.address
                   : selectedBooking.pickup}
               </p>
               <p className="text-slate-700">
                 <strong className="text-slate-900">Dropoff:</strong>{" "}
                 {typeof selectedBooking.dropoff === "object"
-                  ? selectedBooking.dropoff.name || selectedBooking.dropoff.address
+                  ? selectedBooking.dropoff.name ||
+                    selectedBooking.dropoff.address
                   : selectedBooking.dropoff || "Not specified"}
               </p>
             </div>
@@ -186,7 +188,7 @@ export default function BookingDetailModal({
                 <span className="text-slate-400 block">Payment Status</span>
                 <span
                   className={`px-2 py-0.5 rounded-full font-bold uppercase ${getPaymentBadge(
-                    selectedBooking.paymentStatus
+                    selectedBooking.paymentStatus,
                   )}`}
                 >
                   {selectedBooking.paymentStatus}
@@ -212,8 +214,8 @@ export default function BookingDetailModal({
         {/* Internal Notes / Instructions */}
         <div className="space-y-2">
           <label className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-            <FileText className="w-3.5 h-3.5 text-indigo-600" /> Internal Notes /
-            Driver Instructions
+            <FileText className="w-3.5 h-3.5 text-indigo-600" /> Internal Notes
+            / Driver Instructions
           </label>
           <textarea
             rows={2}

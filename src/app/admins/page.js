@@ -97,7 +97,7 @@ export default function AdminsManagementPage() {
         setIsSearching(false);
       }
     },
-    [debouncedSearch, roleFilter, setIsSearching]
+    [debouncedSearch, roleFilter, setIsSearching],
   );
 
   useEffect(() => {
@@ -125,7 +125,8 @@ export default function AdminsManagementPage() {
         if (isCurrent) {
           console.error(err);
           setError(
-            err.message || "Failed to fetch admin users from /api/admin/admins.",
+            err.message ||
+              "Failed to fetch admin users from /api/admin/admins.",
           );
         }
       } finally {
@@ -444,9 +445,7 @@ export default function AdminsManagementPage() {
                   {adm.role}
                 </span>
               </td>
-              <td className="py-3.5 px-4 text-slate-600">
-                {adm.phone || "-"}
-              </td>
+              <td className="py-3.5 px-4 text-slate-600">{adm.phone || "-"}</td>
               <td className="py-3.5 px-4">
                 <span
                   className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${

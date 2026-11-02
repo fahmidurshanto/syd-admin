@@ -95,15 +95,12 @@ export default function PaymentDetailModal({
               </p>
               <p className="text-slate-600">
                 Booking Status:{" "}
-                <b className="text-slate-800">
-                  {bookingPaymentDetail.status}
-                </b>
+                <b className="text-slate-800">{bookingPaymentDetail.status}</b>
               </p>
               <p className="text-slate-600">
                 Fare Total:{" "}
                 <b className="text-slate-800">
-                  $
-                  {bookingPaymentDetail.fare?.total || selectedPayment.amount}
+                  ${bookingPaymentDetail.fare?.total || selectedPayment.amount}
                 </b>
               </p>
             </div>

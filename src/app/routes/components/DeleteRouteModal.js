@@ -16,8 +16,8 @@ export default function DeleteRouteModal({
         </h3>
         <p className="text-xs text-slate-500">
           Are you sure you want to delete the route fare from{" "}
-          <b>{deleteTarget.firstPlace}</b> to{" "}
-          <b>{deleteTarget.lastPlace}</b>? This action cannot be undone.
+          <b>{deleteTarget.firstPlace}</b> to <b>{deleteTarget.lastPlace}</b>?
+          This action cannot be undone.
         </p>
         <div className="flex justify-end gap-2.5 pt-2">
           <button

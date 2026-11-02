@@ -314,7 +314,9 @@ export default function DashboardOverview() {
             <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1 shadow-xs justify-between sm:justify-start">
               <div className="flex items-center gap-1.5">
                 <Filter className="w-3.5 h-3.5 text-slate-500" />
-                <span className="text-xs text-slate-500 font-medium sm:hidden">Filter:</span>
+                <span className="text-xs text-slate-500 font-medium sm:hidden">
+                  Filter:
+                </span>
               </div>
               <select
                 value={statusFilter}
