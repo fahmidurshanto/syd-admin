@@ -340,7 +340,7 @@ export default function AdminsManagementPage() {
       </div>
 
       {/* Search & Filter */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-stretch sm:items-center">
         <SearchInput
           value={search}
           onChange={setSearch}
@@ -350,19 +350,19 @@ export default function AdminsManagementPage() {
           className="w-full sm:flex-1 sm:max-w-md"
         />
 
-        <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+        <div className="flex items-center justify-between sm:justify-start gap-2.5 w-full sm:w-auto">
           {isSearching && (
             <span className="text-xs text-indigo-600 font-medium animate-pulse">
               Searching...
             </span>
           )}
-          <label className="text-xs font-medium text-slate-500 shrink-0">
-            Filter Role:
+          <label className="text-[11px] sm:text-xs font-semibold text-slate-500 shrink-0">
+            Role:
           </label>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            className="flex-1 sm:flex-initial px-2.5 py-1.5 rounded-xl border border-slate-300 text-[11px] sm:text-xs font-medium text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer text-right sm:text-left"
           >
             <option value="all">All Roles</option>
             <option value="superadmin">Superadmin</option>

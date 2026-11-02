@@ -283,23 +283,23 @@ export default function BookingsManagementPage() {
       />
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 flex-1">
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col gap-3.5">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
           <SearchInput
             value={search}
             onChange={setSearch}
             onClear={clear}
             isLoading={isSearching}
             placeholder="Search reference, name, phone, email..."
-            className="w-full sm:flex-1 sm:min-w-[220px]"
+            className="w-full sm:flex-1 sm:min-w-[240px]"
           />
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
             {/* Status Filter */}
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial justify-between sm:justify-start">
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 justify-between sm:justify-start">
               <label
                 htmlFor="booking-status-filter"
-                className="text-xs font-semibold text-slate-500"
+                className="text-[11px] sm:text-xs font-semibold text-slate-500 whitespace-nowrap"
               >
                 Status:
               </label>
@@ -307,7 +307,7 @@ export default function BookingsManagementPage() {
                 id="booking-status-filter"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+                className="bg-transparent text-[11px] sm:text-xs text-slate-700 font-medium focus:outline-none cursor-pointer w-full text-right sm:text-left"
               >
                 <option value="all">All</option>
                 <option value="pending">Pending</option>
@@ -320,10 +320,10 @@ export default function BookingsManagementPage() {
             </div>
 
             {/* Vehicle Type Filter */}
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial justify-between sm:justify-start">
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 justify-between sm:justify-start">
               <label
                 htmlFor="booking-vehicle-filter"
-                className="text-xs font-semibold text-slate-500"
+                className="text-[11px] sm:text-xs font-semibold text-slate-500 whitespace-nowrap"
               >
                 Vehicle:
               </label>
@@ -331,7 +331,7 @@ export default function BookingsManagementPage() {
                 id="booking-vehicle-filter"
                 value={vehicleFilter}
                 onChange={(e) => setVehicleFilter(e.target.value)}
-                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+                className="bg-transparent text-[11px] sm:text-xs text-slate-700 font-medium focus:outline-none cursor-pointer w-full text-right sm:text-left"
               >
                 <option value="all">All Vehicles</option>
                 <option value="Chauffeur">Chauffeur</option>
@@ -343,10 +343,10 @@ export default function BookingsManagementPage() {
             </div>
 
             {/* Payment Filter */}
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 sm:flex-initial justify-between sm:justify-start">
+            <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 justify-between sm:justify-start">
               <label
                 htmlFor="booking-payment-filter"
-                className="text-xs font-semibold text-slate-500"
+                className="text-[11px] sm:text-xs font-semibold text-slate-500 whitespace-nowrap"
               >
                 Payment:
               </label>
@@ -354,7 +354,7 @@ export default function BookingsManagementPage() {
                 id="booking-payment-filter"
                 value={paymentFilter}
                 onChange={(e) => setPaymentFilter(e.target.value)}
-                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
+                className="bg-transparent text-[11px] sm:text-xs text-slate-700 font-medium focus:outline-none cursor-pointer w-full text-right sm:text-left"
               >
                 <option value="all">All</option>
                 <option value="paid">Paid</option>
@@ -365,12 +365,13 @@ export default function BookingsManagementPage() {
           </div>
         </div>
 
-        <div className="text-xs font-medium text-slate-500 self-end lg:self-center">
-          Showing{" "}
-          <span className="font-bold text-slate-800">
-            {filteredBookings.length}
-          </span>{" "}
-          of {totalCount}
+        <div className="text-[11px] sm:text-xs font-medium text-slate-500 flex items-center justify-between border-t border-slate-100 pt-2.5">
+          <span>
+            Active Bookings Filter
+          </span>
+          <span>
+            Showing <span className="font-bold text-slate-800">{filteredBookings.length}</span> of {totalCount}
+          </span>
         </div>
       </div>
 
