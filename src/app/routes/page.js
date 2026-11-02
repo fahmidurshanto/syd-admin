@@ -384,6 +384,20 @@ export default function RoutesManagementPage() {
               : route.vehicleAndFares || {};
           const currency = route.currency || "AUD";
 
+          // Calculate distance and duration from route or estimate realistically from base fare
+          const taxiFare = fares.Taxi ?? fares.taxi;
+          const chauffeurFare =
+            fares.Chauffeur ?? fares.chauffeur ?? fares.executive ?? fares.luxury;
+          const baseFare = Number(taxiFare) || (Number(chauffeurFare) ? Math.round(Number(chauffeurFare) * 0.8) : null);
+
+          // Realistic Sydney estimate: Base flag drop (~$10) + ~$3.2/km, average city/highway speed ~40-45 km/h
+          const estimatedKm = baseFare ? Math.max(5, Math.round((baseFare - 10) / 3.4)) : null;
+          const estimatedMins = estimatedKm ? Math.max(10, Math.round(estimatedKm * 1.35 + 8)) : null;
+
+          const displayDistance = route.distanceKm || estimatedKm;
+          const isDistanceEstimated = !route.distanceKm && !!estimatedKm;
+          const displayDuration = route.durationMin || estimatedMins;
+
           return (
             <tr
               key={route._id || route.id}
@@ -408,15 +422,17 @@ export default function RoutesManagementPage() {
               </td>
               <td className="py-3.5 px-4 text-slate-600">
                 <div className="flex items-center gap-3">
-                  {route.distanceKm ? (
-                    <span>{route.distanceKm} km</span>
+                  {displayDistance ? (
+                    <span className="font-medium text-slate-700">
+                      {isDistanceEstimated ? `~${displayDistance}` : displayDistance} km
+                    </span>
                   ) : (
                     <span className="text-slate-400">-</span>
                   )}
-                  {route.durationMin && (
-                    <span className="flex items-center gap-1 text-slate-500">
+                  {displayDuration && (
+                    <span className="flex items-center gap-1 text-slate-500 text-xs">
                       <Clock className="w-3 h-3 text-slate-400" />
-                      {route.durationMin} mins
+                      {displayDuration} mins
                     </span>
                   )}
                 </div>
