@@ -102,6 +102,7 @@ export default function RoutesManagementPage() {
         const res = await api.getRoutes(params);
         if (res.success) {
           const list = res.routes || res.places || [];
+          console.log("[DEBUG Routes API Response] Total routes fetched:", list.length, "First route:", list[0]);
           routesCache.set(cacheKey, list);
           if (isDefault) {
             routesCache.set("default", list);
@@ -152,6 +153,7 @@ export default function RoutesManagementPage() {
         const res = await api.getRoutes(params);
         if (isCurrent && res.success) {
           const list = res.routes || res.places || [];
+          console.log("[DEBUG Routes API Initial Fetch] Total routes fetched:", list.length, "First route:", list[0]);
           routesCache.set(cacheKey, list);
           if (isDefault) {
             routesCache.set("default", list);
@@ -201,11 +203,15 @@ export default function RoutesManagementPage() {
         ? Object.fromEntries(route.vehicleAndFares)
         : route.vehicleAndFares || {};
 
+    const chauffeurPrice =
+      fares.Chauffeur ?? fares.chauffeur ?? fares.executive ?? fares.luxury ?? "";
+    const taxiPrice = fares.Taxi ?? fares.taxi ?? "";
+
     setFormData({
       firstPlace: route.firstPlace || "",
       lastPlace: route.lastPlace || "",
-      chauffeurFare: fares.Chauffeur !== undefined ? fares.Chauffeur : "",
-      taxiFare: fares.Taxi !== undefined ? fares.Taxi : "",
+      chauffeurFare: chauffeurPrice !== "" ? chauffeurPrice : "",
+      taxiFare: taxiPrice !== "" ? taxiPrice : "",
       distanceKm: route.distanceKm || "",
       durationMin: route.durationMin || "",
       currency: route.currency || "AUD",
@@ -222,10 +228,12 @@ export default function RoutesManagementPage() {
       setError(null);
 
       const vehicleAndFares = {};
-      if (formData.chauffeurFare !== "")
+      if (formData.chauffeurFare !== "") {
         vehicleAndFares.Chauffeur = Number(formData.chauffeurFare);
-      if (formData.taxiFare !== "")
+      }
+      if (formData.taxiFare !== "") {
         vehicleAndFares.Taxi = Number(formData.taxiFare);
+      }
 
       if (Object.keys(vehicleAndFares).length === 0) {
         alert("Please specify at least one vehicle fare (Chauffeur or Taxi).");
@@ -371,12 +379,30 @@ export default function RoutesManagementPage() {
           )
         }
       >
-        {routes.map((route) => {
+        {routes.map((route, index) => {
           const fares =
             route.vehicleAndFares instanceof Map
               ? Object.fromEntries(route.vehicleAndFares)
               : route.vehicleAndFares || {};
           const currency = route.currency || "AUD";
+
+          if (index < 3) {
+            console.log(`[DEBUG Route #${index}]`, {
+              routeId: route._id || route.id,
+              firstPlace: route.firstPlace,
+              lastPlace: route.lastPlace,
+              rawVehicleAndFares: route.vehicleAndFares,
+              parsedFares: fares,
+              availableKeys: Object.keys(fares),
+              faresChauffeurCapital: fares.Chauffeur,
+              faresChauffeurLower: fares.chauffeur,
+              faresTaxiCapital: fares.Taxi,
+              faresTaxiLower: fares.taxi,
+              faresExecutive: fares.executive,
+              faresLuxury: fares.luxury,
+              faresSuv: fares.suv,
+            });
+          }
 
           return (
             <tr
@@ -416,18 +442,28 @@ export default function RoutesManagementPage() {
                 </div>
               </td>
               <td className="py-3.5 px-4 font-semibold text-slate-900">
-                {fares.Chauffeur !== undefined ? (
-                  `$${fares.Chauffeur} ${currency}`
-                ) : (
-                  <span className="text-slate-400 font-normal">N/A</span>
-                )}
+                {(() => {
+                  const chauffeurVal =
+                    fares.Chauffeur ??
+                    fares.chauffeur ??
+                    fares.executive ??
+                    fares.luxury;
+                  return chauffeurVal !== undefined && chauffeurVal !== null ? (
+                    `$${chauffeurVal} ${currency}`
+                  ) : (
+                    <span className="text-slate-400 font-normal">N/A</span>
+                  );
+                })()}
               </td>
               <td className="py-3.5 px-4 font-semibold text-slate-900">
-                {fares.Taxi !== undefined ? (
-                  `$${fares.Taxi} ${currency}`
-                ) : (
-                  <span className="text-slate-400 font-normal">N/A</span>
-                )}
+                {(() => {
+                  const taxiVal = fares.Taxi ?? fares.taxi;
+                  return taxiVal !== undefined && taxiVal !== null ? (
+                    `$${taxiVal} ${currency}`
+                  ) : (
+                    <span className="text-slate-400 font-normal">N/A</span>
+                  );
+                })()}
               </td>
               <td className="py-3.5 px-4">
                 <span
