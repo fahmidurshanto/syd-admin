@@ -102,7 +102,6 @@ export default function RoutesManagementPage() {
         const res = await api.getRoutes(params);
         if (res.success) {
           const list = res.routes || res.places || [];
-          console.log("[DEBUG Routes API Response] Total routes fetched:", list.length, "First route:", list[0]);
           routesCache.set(cacheKey, list);
           if (isDefault) {
             routesCache.set("default", list);
@@ -153,7 +152,6 @@ export default function RoutesManagementPage() {
         const res = await api.getRoutes(params);
         if (isCurrent && res.success) {
           const list = res.routes || res.places || [];
-          console.log("[DEBUG Routes API Initial Fetch] Total routes fetched:", list.length, "First route:", list[0]);
           routesCache.set(cacheKey, list);
           if (isDefault) {
             routesCache.set("default", list);
@@ -379,30 +377,12 @@ export default function RoutesManagementPage() {
           )
         }
       >
-        {routes.map((route, index) => {
+        {routes.map((route) => {
           const fares =
             route.vehicleAndFares instanceof Map
               ? Object.fromEntries(route.vehicleAndFares)
               : route.vehicleAndFares || {};
           const currency = route.currency || "AUD";
-
-          if (index < 3) {
-            console.log(`[DEBUG Route #${index}]`, {
-              routeId: route._id || route.id,
-              firstPlace: route.firstPlace,
-              lastPlace: route.lastPlace,
-              rawVehicleAndFares: route.vehicleAndFares,
-              parsedFares: fares,
-              availableKeys: Object.keys(fares),
-              faresChauffeurCapital: fares.Chauffeur,
-              faresChauffeurLower: fares.chauffeur,
-              faresTaxiCapital: fares.Taxi,
-              faresTaxiLower: fares.taxi,
-              faresExecutive: fares.executive,
-              faresLuxury: fares.luxury,
-              faresSuv: fares.suv,
-            });
-          }
 
           return (
             <tr
